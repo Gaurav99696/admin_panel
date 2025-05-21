@@ -34,7 +34,7 @@ function App() {
       installs: parseInt(model.installs),
     };
 
-    fetch("http://localhost:5000/api/aimodels/createModel", {
+    fetch("https://server-4885.onrender.com/api/aimodels/createModel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formattedModel),
@@ -60,7 +60,7 @@ function App() {
   };
 
   const fetchAllModels = () => {
-    fetch("http://localhost:5000/api/aimodels/getModel/")
+    fetch("https://server-4885.onrender.com/api/aimodels/getModel/")
       .then((res) => res.json())
       .then((data) => {
         setAllModels(data.model);
@@ -70,7 +70,7 @@ function App() {
   };
 
   const deleteModel = (id) => {
-    fetch(`http://localhost:5000/api/aimodels/deleteModel/${id}`, {
+    fetch(`https://server-4885.onrender.com/api/aimodels/deleteModel/${id}`, {
       method: "DELETE",
     })
       .then(() => fetchAllModels())
