@@ -18,6 +18,7 @@ function App() {
   const [success, setSuccess] = useState(false);
   const [viewAll, setViewAll] = useState(false);
   const [allModels, setAllModels] = useState([]);
+  const [loading, setLoading] = useState(false); // Loading state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,6 +35,7 @@ function App() {
       installs: parseInt(model.installs),
     };
 
+    setLoading(true);
     fetch("https://server-4885.onrender.com/api/aimodels/createModel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,25 +58,30 @@ function App() {
           installs: "",
         });
       })
-      .catch((err) => console.error("Post failed:", err));
+      .catch((err) => console.error("Post failed:", err))
+      .finally(() => setLoading(false));
   };
 
   const fetchAllModels = () => {
+    setLoading(true);
     fetch("https://server-4885.onrender.com/api/aimodels/getModel/")
       .then((res) => res.json())
       .then((data) => {
         setAllModels(data.model);
         setViewAll(true);
       })
-      .catch((err) => console.error("Fetch failed:", err));
+      .catch((err) => console.error("Fetch failed:", err))
+      .finally(() => setLoading(false));
   };
 
   const deleteModel = (id) => {
+    setLoading(true);
     fetch(`https://server-4885.onrender.com/api/aimodels/deleteModel/${id}`, {
       method: "DELETE",
     })
       .then(() => fetchAllModels())
-      .catch((err) => console.error("Delete failed:", err));
+      .catch((err) => console.error("Delete failed:", err))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -86,6 +93,36 @@ function App() {
         minHeight: "100vh",
       }}
     >
+      {/* Loading Popup */}
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              padding: "20px 40px",
+              backgroundColor: "white",
+              borderRadius: "8px",
+              fontSize: "18px",
+              fontWeight: "bold",
+            }}
+          >
+            Loading...
+          </div>
+        </div>
+      )}
+
       <header style={{ maxWidth: "1000px", margin: "0 auto" }}>
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
           {viewAll ? "All Models" : "Submit AI Model"}
