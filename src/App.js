@@ -41,7 +41,13 @@ function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formattedModel),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText);
+        }
+        return res.json();
+      })
       .then(() => {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
@@ -58,7 +64,10 @@ function App() {
           installs: "",
         });
       })
-      .catch((err) => console.error("Post failed:", err))
+      .catch((err) => {
+        console.error("Post failed:", err.message);
+        alert("Submission failed: " + err.message); // optional UI alert
+      })
       .finally(() => setLoading(false));
   };
 
