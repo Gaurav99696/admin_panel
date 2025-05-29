@@ -54,6 +54,7 @@ function App() {
         setTimeout(() => setSuccess(false), 3000);
         setModel({
           name: "",
+          image: "",
           developer: "",
           description: "",
           category: "",
