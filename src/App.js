@@ -4,6 +4,7 @@ import "./App.css";
 function App() {
   const [model, setModel] = useState({
     name: "",
+    image: "",
     developer: "",
     description: "",
     category: "",
@@ -30,13 +31,13 @@ function App() {
       ...model,
       tags: model.tags.split(",").map((tag) => tag.trim()),
       rating: parseFloat(model.rating),
-      number_of_reviews: parseInt(model.number_of_reviews),
-      user_clicks: parseInt(model.user_clicks),
-      installs: parseInt(model.installs),
+      number_of_reviews: model.number_of_reviews,
+      user_clicks: model.user_clicks,
+      installs: model.installs,
     };
 
     setLoading(true);
-    fetch("https://server-4885.onrender.com/api/aimodels/createModel", {
+    fetch("http://localhost:5000/api/aimodels/createModel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formattedModel),
@@ -235,6 +236,17 @@ function App() {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 }}
               >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{
+                    width: "100%",
+                    height: "200px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                    marginBottom: "5px",
+                  }}
+                />
                 <h3 style={{ marginBottom: "10px" }}>{item.name}</h3>
                 <p>
                   <strong>Developer:</strong> {item.developer}
