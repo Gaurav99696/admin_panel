@@ -37,7 +37,7 @@ function App() {
     };
 
     setLoading(true);
-    fetch("http://localhost:5000/api/aimodels/createModel", {
+    fetch("https://server-4885.onrender.com/api/aimodels/createModel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formattedModel),
