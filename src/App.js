@@ -19,7 +19,9 @@ function App() {
   const [success, setSuccess] = useState(false);
   const [viewAll, setViewAll] = useState(false);
   const [allModels, setAllModels] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editModel, setEditModel] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,7 +70,7 @@ function App() {
       })
       .catch((err) => {
         console.error("Post failed:", err.message);
-        alert("Submission failed: " + err.message); // optional UI alert
+        alert("Submission failed: " + err.message);
       })
       .finally(() => setLoading(false));
   };
@@ -92,6 +94,63 @@ function App() {
     })
       .then(() => fetchAllModels())
       .catch((err) => console.error("Delete failed:", err))
+      .finally(() => setLoading(false));
+  };
+
+  const openEditModal = (modelData) => {
+    setEditModel({
+      ...modelData,
+      tags: Array.isArray(modelData.tags)
+        ? modelData.tags.join(", ")
+        : modelData.tags,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditModel({ ...editModel, [name]: value });
+  };
+
+  const handleSaveEdit = () => {
+    const updatedModel = {
+      ...editModel,
+      tags:
+        typeof editModel.tags === "string"
+          ? editModel.tags.split(",").map((tag) => tag.trim())
+          : Array.isArray(editModel.tags)
+          ? editModel.tags
+          : [],
+      rating: parseFloat(editModel.rating),
+      number_of_reviews: editModel.number_of_reviews,
+      user_clicks: editModel.user_clicks,
+      installs: editModel.installs,
+    };
+
+    setLoading(true);
+    fetch(
+      `https://server-4885.onrender.com/api/aimodels/updateModel/${editModel._id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedModel),
+      }
+    )
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText);
+        }
+        return res.json();
+      })
+      .then(() => {
+        setIsEditModalOpen(false);
+        fetchAllModels();
+      })
+      .catch((err) => {
+        console.error("Update failed:", err.message);
+        alert("Update failed: " + err.message);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -259,7 +318,8 @@ function App() {
                   <strong>Description:</strong> {item.description}
                 </p>
                 <p>
-                  <strong>Tags:</strong> {item.tags.join(", ")}
+                  <strong>Tags:</strong>{" "}
+                  {Array.isArray(item.tags) ? item.tags.join(", ") : item.tags}
                 </p>
                 <p>
                   <strong>Rating:</strong> {item.rating}
@@ -279,25 +339,130 @@ function App() {
                     Visit
                   </a>
                 </p>
-                <button
-                  onClick={() => deleteModel(item._id)}
-                  style={{
-                    marginTop: "10px",
-                    backgroundColor: "#dc3545",
-                    color: "#fff",
-                    padding: "8px 12px",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                <div
+                  style={{ display: "flex", gap: "10px", marginTop: "10px" }}
                 >
-                  Delete
-                </button>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    style={{
+                      backgroundColor: "#007bff",
+                      color: "#fff",
+                      padding: "8px 12px",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteModel(item._id)}
+                    style={{
+                      backgroundColor: "#dc3545",
+                      color: "#fff",
+                      padding: "8px 12px",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </header>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              padding: "30px",
+              borderRadius: "10px",
+              width: "90%",
+              maxWidth: "600px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h3>Edit Model</h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
+            >
+              {Object.keys(model).map((key) =>
+                key === "description" ? (
+                  <textarea
+                    key={key}
+                    name={key}
+                    placeholder={key}
+                    value={editModel[key]}
+                    onChange={handleEditChange}
+                    rows={3}
+                    style={{ padding: "8px", gridColumn: "1 / -1" }}
+                  />
+                ) : (
+                  <input
+                    key={key}
+                    name={key}
+                    placeholder={key}
+                    value={editModel[key]}
+                    onChange={handleEditChange}
+                    style={{ padding: "8px" }}
+                  />
+                )
+              )}
+            </div>
+            <div style={{ marginTop: "20px", textAlign: "right" }}>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                style={{
+                  marginRight: "10px",
+                  padding: "10px 20px",
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "green",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
